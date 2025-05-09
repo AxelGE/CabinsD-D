@@ -3,10 +3,10 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 
 // Admin dashboard
-router.get('/', ensureAdmin, (req, res) => {
+router.get('/dashboard', ensureAdmin, (req, res) => {
   db.all('SELECT * FROM users ORDER BY username', (err, users) => {
     if (err) return res.status(500).render('error', { error: err });
-    res.render('admin/dashboard', { users });
+    res.render('admin/dashboard', { user: req.user });
   });
 });
 

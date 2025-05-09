@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { ensureAdmin } = require('../middleware/auth');
+
 const { ensureAuthenticated, ensureGuest } = require('../middleware/auth');
 
 // Register Page

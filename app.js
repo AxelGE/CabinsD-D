@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const passport = require('./middleware/auth-helpers');
 const { ensureAuthenticated } = require('./middleware/auth');
+const { ensureAdmin } = require('./middleware/auth');
 const app = express();
 const flash = require('express-flash');
 app.use(flash());
@@ -16,6 +17,8 @@ const usersRouter = require('./routes/users');
 mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://axelgarnica:<Ax311396!>@cluster0.vv2n5wz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
 
 // Middleware
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use('/users', usersRouter);
@@ -25,8 +28,7 @@ app.use(session({
     resave: false,
     saveUninitialized: true
 }));
-app.use(passport.initialize());
-app.use(passport.session());
+
 
 // View engine
 app.set('view engine', 'ejs');
