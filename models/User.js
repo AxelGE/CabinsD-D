@@ -16,5 +16,14 @@ userSchema.pre('save', async function(next) {
     }
     next();
 });
+// Add to your User model
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.statics.sanitize = function(user) {
+  const { password, __v, ...sanitizedUser } = user.toObject();
+  return sanitizedUser;
+};
 
 module.exports = mongoose.model('User', userSchema);
