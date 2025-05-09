@@ -1,0 +1,223 @@
+/* Base Styles */
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Game Log */
+.game-log {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.log-entry {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+.log-timestamp {
+    color: #6c757d;
+    margin-right: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.log-content {
+    word-break: break-word;
+}
+
+/* Message Types */
+.log-info { color: #333; }
+.log-chat { color: #212529; }
+.log-dice { color: #0d6efd; }
+.log-combat { color: #dc3545; }
+.log-system { color: #6c757d; }
+.log-error { color: #dc3545; font-weight: bold; }
+
+/* Sender Styles */
+.sender-me { font-weight: bold; color: #0d6efd; }
+.sender-other { font-weight: bold; color: #6c757d; }
+.ooc-message { font-style: italic; }
+
+/* Initiative List */
+#initiative-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.list-group-item.active-turn {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.status-effects .badge {
+    font-size: 0.7rem;
+    cursor: help;
+}
+
+/* Stat Boxes */
+.stat-box {
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+/* Ability Boxes */
+.ability-box {
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.ability-name {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.ability-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.ability-modifier {
+    font-size: 0.9rem;
+    color: #0d6efd;
+}
+
+/* Skill List */
+.skill-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.skill-item {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.skill-name {
+    flex-grow: 1;
+    margin: 0 0.5rem;
+    font-size: 0.9rem;
+}
+
+.skill-mod {
+    width: 40px;
+    text-align: right;
+    font-family: monospace;
+}
+
+/* Inventory List */
+.inventory-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.inventory-item {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+.inventory-item.equipped {
+    font-weight: bold;
+}
+
+.item-name {
+    flex-grow: 1;
+    margin: 0 0.5rem;
+}
+
+.item-quantity {
+    width: 40px;
+    text-align: right;
+    color: #6c757d;
+}
+
+/* Spell List */
+.spell-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.spell-item {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+.spell-item.prepared {
+    font-weight: bold;
+}
+
+.spell-name {
+    flex-grow: 1;
+    margin: 0 0.5rem;
+}
+
+.spell-level {
+    width: 50px;
+    text-align: right;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+/* Spell Slots */
+.spell-slots {
+    margin-bottom: 1rem;
+}
+
+.spell-slot {
+    display: inline-block;
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    width: 60px;
+}
+
+.slot-level {
+    font-size: 0.7rem;
+    color: #6c757d;
+}
+
+.slot-count {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* DM Tools */
+.dm-tools {
+    background-color: #343a40;
+    color: white;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .col-lg-3, .col-lg-6 {
+        margin-bottom: 1.5rem;
+    }
+}

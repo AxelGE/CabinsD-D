@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Character</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <% include ../partials/navbar %>
+    
+    <div class="container mt-4">
+        <h2>Create New Character</h2>
+        <form action="/characters" method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Character Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Race</label>
+                            <select class="form-select" name="race" required>
+                                <option value="Human">Human</option>
+                                <option value="Elf">Elf</option>
+                                <option value="Dwarf">Dwarf</option>
+                                <!-- More races -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Class</label>
+                            <select class="form-select" name="class" required>
+                                <option value="Fighter">Fighter</option>
+                                <option value="Wizard">Wizard</option>
+                                <option value="Rogue">Rogue</option>
+                                <!-- More classes -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5>Abilities</h5>
+                    <div class="row">
+                        <% const abilities = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma']; %>
+                        <% abilities.forEach(ability => { %>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><%= ability %></label>
+                                <input type="number" class="form-control" name="<%= ability.toLowerCase() %>" min="1" max="20" value="10">
+                            </div>
+                        <% }); %>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hit Points</label>
+                            <input type="number" class="form-control" name="hp" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Armor Class</label>
+                            <input type="number" class="form-control" name="ac" min="1" value="10">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Create Character</button>
+        </form>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

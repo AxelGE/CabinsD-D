@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= game.title %> - Game Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/game.css">
+</head>
+<body>
+    <% include ../partials/navbar %>
+    
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Left Sidebar - Initiative/Combat Tracker -->
+            <div class="col-lg-3">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Combat Tracker</h5>
+                        <% if (user.role === 'dm') { %>
+                            <div>
+                                <button class="btn btn-sm <%= game.combat.active ? 'btn-warning' : 'btn-success' %>" 
+                                        id="toggle-combat">
+                                    <%= game.combat.active ? 'End Combat' : 'Start Combat' %>
+                                </button>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="card-body">
+                        <div class="combat-info mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Round:</span>
+                                <span id="combat-round"><%= game.combat.active ? game.round : '--' %></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Current Turn:</span>
+                                <span id="current-turn">
+                                    <% if (game.combat.active && game.currentTurn) { %>
+                                        <%= game.players.find(p => p.user._id.equals(game.currentTurn))?.character.name || '--' %>
+                                    <% } else { %>
+                                        --
+                                    <% } %>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <ul class="list-group" id="initiative-list">
+                            <% const orderedPlayers = game.combat.active ? 
+                                game.combat.turnOrder.map(to => 
+                                    game.players.find(p => p.user._id.equals(to.playerId))
+                                ) : 
+                                game.players.sort((a, b) => b.initiative - a.initiative); 
+                            %>
+                            
+                            <% orderedPlayers.forEach(player => { %>
+                                <li class="list-group-item d-flex justify-content-between align-items-center 
+                                    <%= game.combat.active && player.user._id.equals(game.currentTurn) ? 'active-turn' : '' %>">
+                                    <div>
+                                        <span class="fw-bold"><%= player.character.name %></span>
+                                        <span class="text-muted ms-2">(<%= player.initiative %>)</span>
+                                    </div>
+                                    <div class="status-effects">
+                                        <% player.statusEffects?.forEach(effect => { %>
+                                            <span class="badge bg-danger me-1" title="<%= effect %>">
+                                                <%= effect.substring(0, 1) %>
+                                            </span>
+                                        <% }); %>
+                                    </div>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Quick Reference -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Quick Reference</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="accordion" id="referenceAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#collapseConditions">
+                                        Conditions
+                                    </button>
+                                </h2>
+                                <div id="collapseConditions" class="accordion-collapse collapse" 
+                                     data-bs-parent="#referenceAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="list-unstyled">
+                                            <% conditions.forEach(condition => { %>
+                                                <li class="mb-1">
+                                                    <button class="btn btn-sm btn-outline-secondary condition-btn" 
+                                                            data-condition="<%= condition %>">
+                                                        <%= condition %>
+                                                    </button>
+                                                </li>
+                                            <% }); %>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#collapseActions">
+                                        Combat Actions
+                                    </button>
+                                </h2>
+                                <div id="collapseActions" class="accordion-collapse collapse" 
+                                     data-bs-parent="#referenceAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="list-unstyled">
+                                            <li class="mb-1"><strong>Attack:</strong> Make a weapon or spell attack</li>
+                                            <li class="mb-1"><strong>Cast Spell:</strong> Use a spell slot</li>
+                                            <li class="mb-1"><strong>Dash:</strong> Double movement speed</li>
+                                            <li class="mb-1"><strong>Disengage:</strong> Avoid opportunity attacks</li>
+                                            <li class="mb-1"><strong>Dodge:</strong> Enemies have disadvantage</li>
+                                            <li class="mb-1"><strong>Help:</strong> Give advantage to ally</li>
+                                            <li class="mb-1"><strong>Hide:</strong> Make a Stealth check</li>
+                                            <li class="mb-1"><strong>Ready:</strong> Prepare an action</li>
+                                            <li class="mb-1"><strong>Search:</strong> Make a Perception/Investigation check</li>
+                                            <li class="mb-1"><strong>Use Object:</strong> Interact with environment</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Game Area -->
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><%= game.title %></h5>
+                        <% if (user.role === 'dm') { %>
+                            <button class="btn btn-sm btn-outline-light" id="dm-tools-toggle">
+                                <i class="bi bi-tools"></i> DM Tools
+                            </button>
+                        <% } %>
+                    </div>
+                    <div class="card-body">
+                        <!-- Game Log -->
+                        <div id="game-log" class="game-log mb-3 p-3 bg-light rounded">
+                            <% game.messages?.forEach(message => { %>
+                                <div class="log-entry">
+                                    <span class="log-timestamp"><%= new Date(message.timestamp).toLocaleTimeString() %></span>
+                                    <span class="log-sender"><%= message.sender %>:</span>
+                                    <span class="log-content"><%= message.content %></span>
+                                </div>
+                            <% }); %>
+                        </div>
+                        
+                        <!-- DM Tools (hidden by default) -->
+                        <% if (user.role === 'dm') { %>
+                            <div id="dm-tools" class="dm-tools mb-3 p-3 bg-secondary rounded" style="display: none;">
+                                <h6 class="text-white">DM Controls</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <button class="btn btn-sm btn-success w-100" id="next-turn">
+                                            <i class="bi bi-skip-forward"></i> Next Turn
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-sm btn-warning w-100" id="pause-game">
+                                            <i class="bi bi-pause"></i> <%= game.status === 'paused' ? 'Resume' : 'Pause' %>
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-sm btn-info w-100" id="add-npc">
+                                            <i class="bi bi-plus-circle"></i> Add NPC
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-sm btn-danger w-100" id="end-game">
+                                            <i class="bi bi-power"></i> End Session
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-2 bg-light">
+                                
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="input-group input-group-sm">
+                                            <select class="form-select" id="player-select">
+                                                <% game.players.forEach(player => { %>
+                                                    <option value="<%= player.user._id %>">
+                                                        <%= player.character.name %>
+                                                    </option>
+                                                <% }); %>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control form-control-sm" 
+                                               id="hp-modifier" placeholder="HP Change">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button class="btn btn-sm btn-primary w-100" id="apply-hp">
+                                            <i class="bi bi-heart"></i> Apply
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-2 mt-1">
+                                    <div class="col-md-6">
+                                        <select class="form-select form-select-sm" id="condition-select">
+                                            <option value="">Add Condition...</option>
+                                            <% conditions.forEach(condition => { %>
+                                                <option value="<%= condition %>"><%= condition %></option>
+                                            <% }); %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-sm btn-primary w-100" id="apply-condition">
+                                            <i class="bi bi-plus-circle"></i> Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <!-- Dice Roller -->
+                        <div class="dice-roller mb-3">
+                            <h6 class="border-bottom pb-2">Dice Roller</h6>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button class="btn btn-outline-primary dice-btn" data-sides="4">d4</button>
+                                <button class="btn btn-outline-primary dice-btn" data-sides="6">d6</button>
+                                <button class="btn btn-outline-primary dice-btn" data-sides="8">d8</button>
+                                <button class="btn btn-outline-primary dice-btn" data-sides="10">d10</button>
+                                <button class="btn btn-outline-primary dice-btn" data-sides="12">d12</button>
+                                <button class="btn btn-outline-primary dice-btn" data-sides="20">d20</button>
+                                <button class="btn btn-outline-primary dice-btn" data-sides="100">d100</button>
+                            </div>
+                            
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control" id="dice-count" 
+                                           min="1" max="10" value="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="dice-type">
+                                        <option value="4">d4</option>
+                                        <option value="6">d6</option>
+                                        <option value="8">d8</option>
+                                        <option value="10">d10</option>
+                                        <option value="12">d12</option>
+                                        <option value="20" selected>d20</option>
+                                        <option value="100">d100</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control" id="roll-modifier" 
+                                           placeholder="Mod" value="0">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-2 mt-2">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="roll-description" 
+                                           placeholder="Description (e.g., 'Attack Roll')">
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary w-100" id="roll-custom">
+                                        <i class="bi bi-dice-5"></i> Roll
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Input -->
+                        <div class="chat-input">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="chat-message" 
+                                       placeholder="Send a message...">
+                                <button class="btn btn-success" id="send-message">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                            <div class="form-check form-check-inline mt-2">
+                                <input class="form-check-input" type="checkbox" id="ooc-check">
+                                <label class="form-check-label" for="ooc-check">Out of Character</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Sidebar - Character Info -->
+            <div class="col-lg-3">
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Character Sheet</h5>
+                    </div>
+                    <div class="card-body">
+                        <% if (character) { %>
+                            <ul class="nav nav-tabs" id="characterTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="stats-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#stats" type="button" role="tab">
+                                        Stats
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="skills-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#skills" type="button" role="tab">
+                                        Skills
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#inventory" type="button" role="tab">
+                                        Inventory
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="spells-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#spells" type="button" role="tab">
+                                        Spells
+                                    </button>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content pt-3" id="characterTabsContent">
+                                <!-- Stats Tab -->
+                                <div class="tab-pane fade show active" id="stats" role="tabpanel">
+                                    <h6><%= character.name %></h6>
+                                    <p class="text-muted">
+                                        <%= character.race %> <%= character.class %> (Level <%= character.level %>)
+                                    </p>
+                                    
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="stat-box">
+                                                <div class="stat-value"><%= character.hp.current %>/<%= character.hp.max %></div>
+                                                <div class="stat-label">Hit Points</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="stat-box">
+                                                <div class="stat-value"><%= character.ac %></div>
+                                                <div class="stat-label">Armor Class</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="stat-box">
+                                                <div class="stat-value">+<%= character.proficiencyBonus %></div>
+                                                <div class="stat-label">Proficiency</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="stat-box">
+                                                <div class="stat-value"><%= character.initiative %></div>
+                                                <div class="stat-label">Initiative</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="border-top pt-2">Ability Scores</h6>
+                                    <div class="row g-2">
+                                        <% Object.entries(character.abilities).forEach(([ability, value]) => { 
+                                            const mod = Math.floor((value - 10) / 2);
+                                            const modStr = mod >= 0 ? `+${mod}` : mod;
+                                        %>
+                                            <div class="col-4">
+                                                <div class="ability-box">
+                                                    <div class="ability-name"><%= ability.substring(0, 3).toUpperCase() %></div>
+                                                    <div class="ability-value"><%= value %></div>
+                                                    <div class="ability-modifier"><%= modStr %></div>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                </div>
+                                
+                                <!-- Skills Tab -->
+                                <div class="tab-pane fade" id="skills" role="tabpanel">
+                                    <div class="skill-list">
+                                        <% skills.forEach(skill => { 
+                                            const skillData = character.skills.find(s => s.name === skill.name);
+                                            const modifier = character.getSkillModifier(skill.name);
+                                            const modStr = modifier >= 0 ? `+${modifier}` : modifier;
+                                        %>
+                                            <div class="skill-item">
+                                                <div class="form-check">
+                                                    <input class="form-check-input skill-prof" type="checkbox" 
+                                                           data-skill="<%= skill.name %>"
+                                                           <%= skillData?.proficient ? 'checked' : '' %>
+                                                           <%= user._id.equals(character.createdBy) ? '' : 'disabled' %>>
+                                                    <input class="form-check-input skill-exp" type="checkbox" 
+                                                           data-skill="<%= skill.name %>"
+                                                           <%= skillData?.expertise ? 'checked' : '' %>
+                                                           <%= (skillData?.proficient && user._id.equals(character.createdBy)) ? '' : 'disabled' %>>
+                                                </div>
+                                                <div class="skill-name"><%= skill.name %></div>
+                                                <div class="skill-mod"><%= modStr %></div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                </div>
+                                
+                                <!-- Inventory Tab -->
+                                <div class="tab-pane fade" id="inventory" role="tabpanel">
+                                    <div class="inventory-header d-flex justify-content-between mb-2">
+                                        <span class="fw-bold">Equipment</span>
+                                        <span class="text-muted">
+                                            <%= calculateCarriedWeight(character) %> / <%= calculateCarryCapacity(character) %> lbs
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="inventory-list">
+                                        <% character.inventory.forEach(item => { %>
+                                            <div class="inventory-item <%= item.equipped ? 'equipped' : '' %>">
+                                                <div class="form-check">
+                                                    <input class="form-check-input equip-toggle" type="checkbox" 
+                                                           data-item="<%= item._id %>"
+                                                           <%= item.equipped ? 'checked' : '' %>>
+                                                </div>
+                                                <div class="item-name"><%= item.item.name %></div>
+                                                <div class="item-quantity">x<%= item.quantity %></div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                    
+                                    <button class="btn btn-sm btn-outline-primary w-100 mt-2" 
+                                            data-bs-toggle="modal" data-bs-target="#addItemModal">
+                                        <i class="bi bi-plus"></i> Add Item
+                                    </button>
+                                </div>
+                                
+                                <!-- Spells Tab -->
+                                <div class="tab-pane fade" id="spells" role="tabpanel">
+                                    <% if (character.spellcastingAbility) { %>
+                                        <div class="spell-slots mb-3">
+                                            <h6>Spell Slots</h6>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <% character.spellSlots.forEach(slot => { %>
+                                                    <div class="spell-slot">
+                                                        <div class="slot-level">Level <%= slot.level %></div>
+                                                        <div class="slot-count">
+                                                            <%= slot.remaining %> / <%= slot.max %>
+                                                        </div>
+                                                    </div>
+                                                <% }); %>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="spell-list">
+                                            <% character.spells.forEach(spell => { %>
+                                                <div class="spell-item <%= spell.prepared ? 'prepared' : '' %>">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input prepare-toggle" type="checkbox" 
+                                                               data-spell="<%= spell._id %>"
+                                                               <%= spell.prepared ? 'checked' : '' %>>
+                                                    </div>
+                                                    <div class="spell-name"><%= spell.spell.name %></div>
+                                                    <div class="spell-level">Lvl <%= spell.spell.level %></div>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                        
+                                        <button class="btn btn-sm btn-outline-primary w-100 mt-2" 
+                                                data-bs-toggle="modal" data-bs-target="#addSpellModal">
+                                            <i class="bi bi-plus"></i> Add Spell
+                                        </button>
+                                    <% } else { %>
+                                        <div class="alert alert-info">
+                                            This character doesn't have spellcasting ability.
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <div class="alert alert-warning">
+                                No character selected for this game.
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Item Modal -->
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Item</label>
+                        <select class="form-select" id="item-select">
+                            <% items.forEach(item => { %>
+                                <option value="<%= item._id %>"><%= item.name %> (<%= item.type %>)</option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="item-quantity" min="1" value="1">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="equip-item">
+                        <label class="form-check-label" for="equip-item">Equip immediately</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-item">Add Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Spell Modal -->
+    <div class="modal fade" id="addSpellModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Spell</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Spell</label>
+                        <select class="form-select" id="spell-select">
+                            <% spells.forEach(spell => { %>
+                                <option value="<%= spell._id %>">
+                                    <%= spell.name %> (Lvl <%= spell.level %>, <%= spell.school %>)
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="prepare-spell">
+                        <label class="form-check-label" for="prepare-spell">Prepare immediately</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-spell">Add Spell</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/game.js"></script>
+</body>
+</html>

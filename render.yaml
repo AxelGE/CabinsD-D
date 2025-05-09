@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: dnd-simulator
+    runtime: node
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://axelgarnica:<Ax311396!>@cluster0.vv2n5wz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
