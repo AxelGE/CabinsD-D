@@ -11,12 +11,14 @@ const flash = require('express-flash');
 app.use(flash());
 const authRoutes = require('./routes/auth');
 app.use('/', authRoutes);
+const usersRouter = require('./routes/users');
 // Database connection (MongoDB)
 mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://axelgarnica:<Ax311396!>@cluster0.vv2n5wz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
 
 // Middleware
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
+app.use('/users', usersRouter);
 app.use(express.json());
 app.use(session({
     secret: 'your-secret-key',
