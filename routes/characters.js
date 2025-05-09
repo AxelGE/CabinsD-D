@@ -10,7 +10,7 @@ router.post('/', ensureAuthenticated, async (req, res) => {
         const { name, race, class: charClass, background, alignment } = req.body;
         
         // Calculate HP based on class and constitution
-        const conMod = Math.floor((parseInt(req.body.constitution) - 10) / 2;
+        const conMod = Math.floor((parseInt(req.body.constitution) - 10) / 2);
         const baseHP = getBaseHP(charClass);
         const hp = baseHP + conMod;
         
